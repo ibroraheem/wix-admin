@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 require('dotenv').config()
 
+
 const connectDB = require('./config/db');
 
 app.use(cors());
