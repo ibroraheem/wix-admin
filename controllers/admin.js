@@ -4,16 +4,19 @@ const bcrypt = require('bcryptjs')
 // const User = require('../Models/user');
 const register = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, firstName, lastName } = req.body;
         let admin = await Admin.findOne({ email: email });
         if (admin) return res.status(400).json({ message: 'Admin already exists' });
         const hashedPassword = await bcrypt.hash(password, 12);
-        admin = new Admin({ email, password: hashedPassword })
+        const Email = email.toLowerCase();
+        const FirstName = firstName.toCapitalize();
+        const LastName = lastName.toCapitalize();
+        admin = new Admin({ email: Email, password: hashedPassword, firstName: FirstName, lastName: LastName });
         await admin.save();
         const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
             expiresIn: '1d'
         })
-        res.status(201).json({ message: 'Admin created successfully', token: token });
+        res.status(201).json({ message: 'Admin created successfully', email, firstName, lastName, token: token });
     } catch (error) {
         res.status(500).json({ error: error.message });
         console.log(error);
@@ -35,7 +38,7 @@ const login = async (req, res) => {
         const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
             expiresIn: '1d'
         })
-        res.status(200).json({ message: 'Login Success', token });
+        res.status(200).json({ message: 'Login Success', email: admin.email, firstName: admin.firstName, lastName: admin.lastName, token });
     } catch (error) {
         res.status(500).json({ error: error.message });
         console.log(error);
