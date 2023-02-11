@@ -51,7 +51,7 @@ const forgotPassword = async (req, res) => {
         const admin = await Admin.findOne({ email: email });
         if (!admin) return res.status(404).json({ message: 'Admin not found' });
         const passwordResetToken = Math.floor(Math.random() * 1000000);
-        admin.passwordResetToken = passwordResetToken;
+        admin.passwordResetToken = passwordResetToken.toString();
         admin.passwordResetExpires = Date.now() + 600;
         await admin.save();
         //Mailer goes here
