@@ -9,10 +9,10 @@ const register = async (req, res) => {
         if (admin) return res.status(400).json({ message: 'Admin already exists' });
         const hashedPassword = await bcrypt.hash(password, 12);
         const Email = email.toLowerCase();
-        const FirstName = firstName.toCapitalize();
-        const LastName = lastName.toCapitalize();
-        admin = new Admin({ email: Email, password: hashedPassword, firstName: FirstName, lastName: LastName });
-        await admin.save();
+
+        admin = new Admin({
+            email: Email, password: hashedPassword, firstName, lastName
+        })
         const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
             expiresIn: '1d'
         })
