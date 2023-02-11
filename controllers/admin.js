@@ -52,7 +52,7 @@ const forgotPassword = async (req, res) => {
         if (!admin) return res.status(404).json({ message: 'Admin not found' });
         const passwordResetToken = Math.floor(Math.random() * 1000000);
         admin.passwordResetToken = passwordResetToken;
-        admin.passwordResetExpires = Date.now() + 3600000;
+        admin.passwordResetExpires = Date.now() + 600;
         await admin.save();
         //Mailer goes here
         res.status(200).json({ message: 'Password reset token generated', passwordResetToken });
