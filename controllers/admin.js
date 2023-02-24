@@ -9,7 +9,6 @@ const register = async (req, res) => {
         let admin = await Admin.findOne({ email: Email });
         if (admin) return res.status(400).json({ message: 'Admin already exists' });
         const hashedPassword = await bcrypt.hash(password, 12);
-
         admin = new Admin({
             email: Email, password: hashedPassword, firstName, lastName
         })
@@ -26,7 +25,8 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const admin = await Admin.findOne({ email: email });
+        const Email = email.toLowerCase()
+        const admin = await Admin.findOne({ email: Email });
         if (!admin) {
             res.status(404).json({ message: 'Admin not found' });
         }
@@ -46,8 +46,9 @@ const login = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
     try {
-        const { email } = req.body
-        const admin = await Admin.findOne({ email: email });
+        const email = req.body.email
+        const Email = email.toLowerCase()
+        const admin = await Admin.findOne({ email: Email });
         if (!admin) return res.status(404).json({ message: 'Admin not found' });
         const passwordResetToken = Math.floor(Math.random() * 1000000);
         admin.passwordResetToken = passwordResetToken.toString();
@@ -63,7 +64,8 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
     try {
         const { email, password, passwordResetToken } = req.body;
-        const admin = await Admin.findOne({ email: email });
+        const Email = email.toLowerCase()
+        const admin = await Admin.findOne({ email: Email });
         if (!admin) return res.status(404).json({ message: 'Admin not found' });
         if (admin.passwordResetExpires < Date.now()) return res.status(400).json({ message: 'Token expired' });
         if (passwordResetToken !== admin.passwordResetToken) return res.status(400).json({ message: 'Invalid password reset token' });
