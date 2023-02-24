@@ -5,10 +5,10 @@ const bcrypt = require('bcryptjs')
 const register = async (req, res) => {
     try {
         const { email, password, firstName, lastName } = req.body;
-        let admin = await Admin.findOne({ email: email });
+        const Email = email.toLowerCase();
+        let admin = await Admin.findOne({ email: Email });
         if (admin) return res.status(400).json({ message: 'Admin already exists' });
         const hashedPassword = await bcrypt.hash(password, 12);
-        const Email = email.toLowerCase();
 
         admin = new Admin({
             email: Email, password: hashedPassword, firstName, lastName
@@ -20,7 +20,6 @@ const register = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
         console.log(error);
-
     }
 }
 
