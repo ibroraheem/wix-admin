@@ -17,6 +17,7 @@ const app = express();
 app.use(cors({
     origin: '*'
 }));
+
 app.use(bodyParser.json());
 app.use(morgan('dev'));
 app.use(express.json());

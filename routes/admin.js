@@ -1,10 +1,14 @@
 const express = require('express')
 const router = express.Router()
 
-const { register, login, forgotPassword, resetPassword, revokeAccess, grantAccess, deleteUser, getUsers } = require('../controllers/admin')
+const { register, login, getDrivers, getDriver, deleteDriver } = require('../controllers/admin')
 
 router.post('/register', register)
 router.post('/login', login)
+router.get('/drivers', getDrivers)
+router.get('/driver/:id', getDriver)
+router.delete('/driver/:id', deleteDriver)
+
 // router.post('/forgot-password', forgotPassword)
 // router.post('/reset-password', resetPassword)
 // router.get('/users', getUsers)

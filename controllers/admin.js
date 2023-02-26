@@ -96,4 +96,6 @@ const deleteDriver = async (req, res) => {
 
 
 
+
+
 module.exports = {register, login, getDrivers, getDriver, deleteDriver}
