@@ -1,4 +1,5 @@
 const Admin = require('../models/admin')
+const Driver = require('../models/driver')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 require('dotenv').config()
@@ -41,4 +42,58 @@ const login = async (req, res) => {
     }
 }
 
-module.exports = {register, login}
+const getDrivers = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        }
+        const drivers = await Driver.find()
+        res.status(200).send(drivers)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
+
+const getDriver = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        }
+        const driver = await Driver.findOne({ _id: req.params.id })
+        res.status(200).send(driver)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
+
+const deleteDriver = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        }
+        const driver = await Driver.findOne({ _id: req.params.id })
+        if (!driver) {
+            res.status(404).send("Driver not found")
+        }
+        await Driver.deleteOne({ _id: req.params.id })
+        res.status(200).send("Driver deleted")
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
+
+
+
+module.exports = {register, login, getDrivers, getDriver, deleteDriver}
