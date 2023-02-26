@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://drab-plum-toad-hose.cyclic.app/"
+      "url": "http://localhost:3000/"
     }
   ],
   "paths": {
