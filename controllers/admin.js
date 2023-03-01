@@ -1,6 +1,7 @@
 const Admin = require('../models/admin')
 const Driver = require('../models/driver')
 const User = require('../models/user')
+const WithdrawalRequest = require('../models/withdrawalRequest')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 require('dotenv').config()
@@ -232,5 +233,85 @@ const getTrip = async (req, res) => {
     }
 }
 
+const getWithdrawals = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        } else {
+            const withdrawals = await Withdrawal.find()
+            res.status(200).send(withdrawals)
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
 
-module.exports = {register, login, getDrivers, getDriver, deleteDriver, getUsers, getUser, revokeAccess, grantAccess, deleteUser, getTrips, getTrip}
+const getWithdrawal = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        } else {
+            const withdrawal = await Withdrawal.findOne({ _id: req.params.id })
+            res.status(200).send(withdrawal)
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
+
+const approveWithdrawal = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        } else {
+            const withdrawal = await Withdrawal.findOne({ _id: req.params.id })
+            if (!withdrawal) {
+                res.status(404).send("Withdrawal not found")
+            } else {
+                withdrawal.status = "Approved"
+                await withdrawal.save()
+                res.status(200).send(`Withdrawal of ${withdrawal.amount} approved`)
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
+
+const declineWithdrawal = async (req, res) => {
+    try {
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        } else {
+            const withdrawal = await Withdrawal.findOne({ _id: req.params.id })
+            if (!withdrawal) {
+                res.status(404).send("Withdrawal not found")
+            } else {
+                withdrawal.status = "Declined"
+                await withdrawal.save()
+                res.status(200).send(`Withdrawal of ${withdrawal.amount} declined`)
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
+
+
+module.exports = {register, login, getDrivers, getDriver, deleteDriver, getUsers, getUser, revokeAccess, grantAccess, deleteUser, getTrips, getTrip, getWithdrawals, getWithdrawal, approveWithdrawal, declineWithdrawal}
