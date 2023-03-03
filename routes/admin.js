@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const { register, login, getDrivers, getDriver, deleteDriver, getUsers, getUser, revokeAccess, grantAccess, deleteUser, getTrips, getTrip, getWithdrawals, getWithdrawal, approveWithdrawal, declineWithdrawal } = require('../controllers/admin')
+const { register, login, getDrivers, getDriver, deleteDriver, getUsers, getUser, revokeAccess, grantAccess, deleteUser, getTrips, getTrip, getWithdrawals, getWithdrawal, approveWithdrawal, declineWithdrawal, forgotPassword, resetPassword } = require('../controllers/admin')
 
 router.post('/register', register)
 router.post('/login', login)
@@ -19,5 +19,7 @@ router.get('/withdrawals', getWithdrawals)
 router.get('/withdrawal/:id', getWithdrawal)
 router.post('/withdrawal/approve', approveWithdrawal)
 router.post('/withdrawal/decline', declineWithdrawal)
+router.post('/forgot-password', forgotPassword)
+router.post('/reset-password', resetPassword)
 
 module.exports = router

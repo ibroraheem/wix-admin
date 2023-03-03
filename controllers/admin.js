@@ -1,6 +1,7 @@
 const Admin = require('../models/admin')
 const Driver = require('../models/driver')
 const User = require('../models/user')
+const nodemailer = require('nodemailer')
 const WithdrawalRequest = require('../models/withdrawalRequest')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
@@ -15,7 +16,7 @@ const register = async (req, res) => {
             const hashedPassword = await bcrypt.hash(password, 12)
             const newAdmin = await Admin.create({ email, password: hashedPassword, firstName: firstName, lastName: lastName })
             const token = jwt.sign({ email: newAdmin.email }, process.env.JWT_SECRET, { expiresIn: '5y' })
-            res.status(201).send({email: newAdmin.email, token: token})
+            res.status(201).send({ email: newAdmin.email, token: token })
         }
     } catch (error) {
         console.log(error)
@@ -35,7 +36,7 @@ const login = async (req, res) => {
                 res.status(400).send("Incorrect password")
             } else {
                 const token = jwt.sign({ email: admin.email }, process.env.JWT_SECRET, { expiresIn: '5y' })
-                res.status(200).send({email: admin.email, token: token})
+                res.status(200).send({ email: admin.email, token: token })
             }
         }
     } catch (error) {
@@ -313,5 +314,77 @@ const declineWithdrawal = async (req, res) => {
     }
 }
 
+const forgotPassword = async (req, res) => {
+    try {
+        const email = req.body.email
+        const admin = await Admin.findOne({ email: email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        } else {
+            const passwordResetToken = Math.floor(100000 + Math.random() * 900000)
+            admin.passwordResetToken = passwordResetToken.toString()
+            admin.passwordResetTokenExpires = Date.now() + 36000
+            await admin.save()
+            const transporter = nodemailer.createTransport({
+                host: 'smtp.zoho.com',
+                port: 465,
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASSWORD
+                }
+            })
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: email,
+                subject: 'Password Reset',
+                text: `Your password reset token is ${passwordResetToken} expiring in 10 minutes`
+            }
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log(error)
+                    res.status(500).send(error.message)
+                } else {
+                    const token = jwt.sign({ email: admin.email }, process.env.JWT_SECRET, { expiresIn: '1h' })
+                    res.status(200).send({ message: "Password reset token sent", token: token })
+                }
+            })
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
 
-module.exports = {register, login, getDrivers, getDriver, deleteDriver, getUsers, getUser, revokeAccess, grantAccess, deleteUser, getTrips, getTrip, getWithdrawals, getWithdrawal, approveWithdrawal, declineWithdrawal}
+const resetPassword = async (req, res) => {
+    try {
+        const password = req.body.password
+        const token = req.headers.authorization.split(' ')[1]
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ email: decoded.email })
+        if (!admin) {
+            res.status(404).send("Admin not found")
+        } else {
+            if (admin.passwordResetTokenExpires < Date.now()) {
+                res.status(400).send("Password reset token expired")
+            } else {
+                if (admin.passwordResetToken !== req.body.token) {
+                    res.status(400).send("Invalid password reset token")
+                } else {
+                    const hashedPassword = await bcrypt.hash(password, 10)
+                    admin.password = hashedPassword
+                    admin.passwordResetToken = null
+                    admin.passwordResetTokenExpires = null
+                    await admin.save()
+                    res.status(200).send("Password reset successful")
+                }
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error.message)
+    }
+}
+
+
+
+        module.exports = { register, login, getDrivers, getDriver, deleteDriver, getUsers, getUser, revokeAccess, grantAccess, deleteUser, getTrips, getTrip, getWithdrawals, getWithdrawal, approveWithdrawal, declineWithdrawal, forgotPassword, resetPassword }
