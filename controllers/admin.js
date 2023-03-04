@@ -2,7 +2,7 @@ const Admin = require('../models/admin')
 const Driver = require('../models/driver')
 const User = require('../models/user')
 const nodemailer = require('nodemailer')
-const WithdrawalRequest = require('../models/withdrawalRequest')
+const Withdrawal = require('../models/withdrawalRequest')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 require('dotenv').config()
@@ -281,7 +281,33 @@ const approveWithdrawal = async (req, res) => {
                 res.status(404).send("Withdrawal not found")
             } else {
                 withdrawal.status = "Approved"
+                const user = await User.findOne({ _id: withdrawal.user })
+                user.balance -= withdrawal.amount
+                const userEmail = user.email
+                await user.save()
                 await withdrawal.save()
+                const transporter = nodemailer.createTransport({
+                    host: "smtp.zoho.com",
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: process.env.EMAIL,
+                        pass: process.env.PASSWORD
+                    }
+                })
+                const mailOptions = {
+                    from: process.env.EMAIL,
+                    to: userEmail,
+                    subject: "Withdrawal Approved",
+                    text: `Your withdrawal of ${withdrawal.amount} has been approved.`
+                }
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.log(error)
+                    } else {
+                        console.log("Email sent: " + info.response)
+                    }
+                })  
                 res.status(200).send(`Withdrawal of ${withdrawal.amount} approved`)
             }
         }
@@ -305,6 +331,30 @@ const declineWithdrawal = async (req, res) => {
             } else {
                 withdrawal.status = "Declined"
                 await withdrawal.save()
+                const user = await User.findOne({ _id: withdrawal.user })
+                const userEmail = user.email
+                const transporter = nodemailer.createTransport({
+                    host: "smtp.zoho.com",
+                    port: 465,
+                    secure: true,
+                    auth: {
+                        user: process.env.EMAIL,
+                        pass: process.env.PASSWORD
+                    }
+                })
+                const mailOptions = {
+                    from: process.env.EMAIL,
+                    to: userEmail,
+                    subject: "Withdrawal Declined",
+                    text: `Your withdrawal of ${withdrawal.amount} has been declined.`
+                }
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.log(error)
+                    } else {
+                        console.log("Email sent: " + info.response)
+                    }
+                })
                 res.status(200).send(`Withdrawal of ${withdrawal.amount} declined`)
             }
         }
@@ -384,7 +434,5 @@ const resetPassword = async (req, res) => {
         res.status(500).send(error.message)
     }
 }
-
-
 
         module.exports = { register, login, getDrivers, getDriver, deleteDriver, getUsers, getUser, revokeAccess, grantAccess, deleteUser, getTrips, getTrip, getWithdrawals, getWithdrawal, approveWithdrawal, declineWithdrawal, forgotPassword, resetPassword }
