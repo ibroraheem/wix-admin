@@ -407,10 +407,8 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
     try {
-        const password = req.body.password
-        const token = req.headers.authorization.split(' ')[1]
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
-        const admin = await Admin.findOne({ email: decoded.email })
+        const {otp, password} = req.body
+        const admin = await Admin.findOne({ passwordResetToken: otp })
         if (!admin) {
             res.status(404).send("Admin not found")
         } else {

@@ -527,15 +527,7 @@
     "/admin/reset-password": {
       "post": {
         "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"
@@ -556,10 +548,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "password": {
+                  "token": {
                     "example": "any"
                   },
-                  "token": {
+                  "otp": {
+                    "example": "any"
+                  },
+                  "password": {
                     "example": "any"
                   }
                 }
